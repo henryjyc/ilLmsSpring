@@ -19,18 +19,31 @@ public class LibBranchDaoImp implements GenericDao<LibraryBranch> {
 		this.con = con;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see com.st.lmssql.dao.GenericDao#add(java.lang.Object)
+	 * returns false if an object with the id# already exists
+	 */
 	@Override
-	public void add(LibraryBranch obj) throws SQLException {
+	public boolean add(LibraryBranch obj) throws SQLException {
+		if(has(obj.getBranchId()))
+				return false;
 		String query = "INSERT INTO tbl_library_branch (branchName, branchAddress) " + 
 					   "VALUES (" + obj.getBranchName() + "," + obj.getBranchAddress() + ")";
 	
 		Statement stmt = con.createStatement();
 		stmt.executeUpdate(query);
+		return true;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.st.lmssql.dao.GenericDao#get(int)
+	 * returns null if object is not found
+	 */
 	@Override
 	public LibraryBranch get(int objId) throws SQLException {
-		LibraryBranch libBranch = new LibraryBranch();
+		LibraryBranch libBranch = null;
 		String query = "SELECT * " + 
 					   "FROM tbl_library_branch " + 
 					   "WHERE branchId=" + objId;
@@ -48,6 +61,11 @@ public class LibBranchDaoImp implements GenericDao<LibraryBranch> {
 		return libBranch;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.st.lmssql.dao.GenericDao#getAll()
+	 * returns empty list if table is empty
+	 */
 	@Override
 	public ArrayList<LibraryBranch> getAll() throws SQLException {
 		ArrayList<LibraryBranch> libBranches = new ArrayList<>();
@@ -66,23 +84,48 @@ public class LibBranchDaoImp implements GenericDao<LibraryBranch> {
 
 		return libBranches;
 	}
-
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.st.lmssql.dao.GenericDao#update(java.lang.Object)
+	 * returns false if the object does not exist
+	 */
 	@Override
-	public void update(LibraryBranch obj) throws SQLException {
+	public boolean update(LibraryBranch obj) throws SQLException {
+		if(!has(obj.getBranchId()))
+			return false;
 		String query = "UPDATE tbl_library_branch " + 
 					   "SET branchName=" + obj.getBranchName() + "," + "branchAddress=" + obj.getBranchAddress() + " " +
 					   "WHERE branchId=" + obj.getBranchId();
 		
 		Statement stmt = con.createStatement();
 		stmt.executeUpdate(query);  
+		return true;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.st.lmssql.dao.GenericDao#delete(java.lang.Object)
+	 * returns false if the object does not exist
+	 */
 	@Override
-	public void delete(LibraryBranch obj) throws SQLException {
+	public boolean delete(LibraryBranch obj) throws SQLException {
+		if(!has(obj.getBranchId()))
+			return false;
 		String query = "DELETE FROM tbl_library_branch WHERE branchId=?";
 		
 		PreparedStatement pstmt = con.prepareStatement(query);
 		pstmt.setInt(1, obj.getBranchId());
 		pstmt.executeUpdate();
+		return true;
+	}
+
+	@Override
+	public boolean has(int objId) throws SQLException {
+		String query = "SELECT * FROM tbl_library_branch WHERE branchId=?";
+		PreparedStatement pstmt = con.prepareStatement(query);
+		pstmt.setInt(1, objId);
+		ResultSet rs = pstmt.executeQuery();
+		return (rs.next());
 	}
 }
